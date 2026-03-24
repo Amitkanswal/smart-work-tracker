@@ -80,16 +80,8 @@ chrome-extension-task/
 │   │       ├── ExportSettings.tsx
 │   │       └── LeaveCalendar.tsx
 │   ├── dashboard/
-│   │   ├── index.tsx
-│   │   ├── App.tsx
-│   │   └── components/
-│   │       ├── DailyView.tsx
-│   │       ├── MonthlyView.tsx
-│   │       ├── TimeBreakdownChart.tsx
-│   │       ├── ProductivityScore.tsx
-│   │       ├── BlockerFrequency.tsx
-│   │       ├── OvertimeTracker.tsx
-│   │       └── InsightCards.tsx
+│   │   ├── main.tsx              # Dashboard entry (Vite)
+│   │   └── App.tsx               # Daily + monthly views; Recharts pie (day summary) + bars (category, monthly)
 │   ├── shared/
 │   │   ├── types/
 │   │   │   ├── taskLog.ts
@@ -141,7 +133,7 @@ chrome-extension-task/
 | State Management | Zustand                        | Lightweight, minimal boilerplate   |
 | Local DB         | Dexie.js (IndexedDB)           | Typed, offline-first               |
 | Settings Sync    | Chrome Storage Sync API        | Cross-device for small config      |
-| Charts           | Recharts                       | React-native, lightweight          |
+| Charts           | Recharts (`PieChart`, `BarChart`) | React-native, lightweight; pie for daily time mix, bars for category + monthly trend |
 | Google APIs      | `@googleapis` REST via `fetch` | Smaller bundle than heavy SDKs     |
 | Testing          | Vitest + Testing Library       | Fast, Vite-native                  |
 
@@ -370,7 +362,13 @@ interface DailyAnalytics {
 
 ### SUB-TASK 9: Dashboard — Daily View
 
-**Scope:** Charts, timeline, blockers, productivity score, suggestions.
+**Scope:** Charts, blockers, productivity score, suggestions (single-page daily + monthly sections in `App.tsx`).
+
+**As implemented (charts):**
+
+- **Day summary** (focus / meetings / ad-hoc / overtime minutes): **`PieChart`** with per-slice colors, **Legend**, **Tooltip** (minutes), slice **labels** (name + %). Data is the same aggregated mix as before; only the visualization is pie instead of bar.
+- **Minutes by category:** horizontal **`BarChart`** (unchanged).
+- **Monthly view** (productivity score by day): **`BarChart`** (unchanged — time series).
 
 **Acceptance criteria:**
 
@@ -378,6 +376,7 @@ interface DailyAnalytics {
 2. Recharts only; target render budget (~500ms).
 3. Heuristics for suggestions (missed slots, meeting %, blockers).
 4. Empty state.
+5. Daily time-mix chart uses **pie** for part-of-whole readability; category and monthly charts remain **bar** charts.
 
 **Constraints:** Aggregation logic belongs in `analyticsEngine.ts`.
 
@@ -388,6 +387,8 @@ interface DailyAnalytics {
 ### SUB-TASK 10: Dashboard — Monthly View
 
 **Scope:** Heatmap, trends, top blockers, overtime patterns, summary cards.
+
+**As implemented:** Month picker, summary stats, and **productivity score by day** as a **`BarChart`** in `src/dashboard/App.tsx` (same page as daily view).
 
 **Acceptance criteria:**
 
@@ -662,6 +663,6 @@ It does not duplicate acceptance criteria here — §6 remains the source of tru
 
 | Item     | Detail                                                                                                               |
 | -------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Done** | Plan saved to versioned markdown for the team                                                                        |
+| **Done** | Plan saved to versioned markdown for the team; dashboard chart behavior and `src/dashboard/` layout kept in sync with code (daily summary = Recharts pie; see §6 ST9). |
 | **File** | [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)                                                           |
 | **Next** | Scaffold repo (ST1), then types + storage (ST2–ST4); assign waves per [DEVELOPER_RUNBOOK.md](./DEVELOPER_RUNBOOK.md) |
